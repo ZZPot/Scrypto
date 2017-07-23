@@ -10,7 +10,7 @@ label_style.innerHTML = "\
 .label\
 {\
 	background-color:rgb(44, 51, 61);\
-	width: 160px;\
+	width: 200px;\
 	border-radius: 0px 0px 3px 3px;\
 	padding: 3px;\
 	font-size: 20px;\
@@ -34,7 +34,7 @@ label_style.innerHTML = "\
 .inputField\
 {\
 	transition-duration: 0.2s;\
-	width: auto;\
+	width: 100%;\
 	color: black;\
 	font: 14px \"Arial\";\
 }\
@@ -55,6 +55,7 @@ label_style.innerHTML = "\
 	padding: 3px;\
 	margin: 3px auto;\
 	width:48%;\
+	font: 700 20px \"Trebuchet MS\",sans-serif;\
 }\
 ";
 var cryptoLib = document.createElement("script");
@@ -74,16 +75,18 @@ var decryptBtn = document.createElement("button");
 
 label.className = "label";
 keyField.className = "inputField";
-keyField.setAttribute("type", "textarea");
+keyField.setAttribute("type", "text");
+keyField.setAttribute("placeholder", "Key");
 textField.className = "inputField";
+textField.setAttribute("placeholder", "Text");
 arrows.className = "arrows";
 
 encryptBtn.onclick = encryptMessage;
 decryptBtn.onclick = decryptMessage;
 encryptBtn.className = "cryptBtn";
 decryptBtn.className = "cryptBtn";
-encryptBtn.innerHTML = "EN";
-decryptBtn.innerHTML = "DE";
+encryptBtn.innerHTML = "ENCRYPT";
+decryptBtn.innerHTML = "DECRYPT";
 
 function hideCrypt()
 {
@@ -224,5 +227,4 @@ label.appendChild(encryptBtn);
 label.appendChild(decryptBtn);
 label.appendChild(textField);
 label.appendChild(arrows);
-
 showCrypt();
