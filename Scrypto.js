@@ -6,58 +6,58 @@
 // @grant       none
 // ==/UserScript==
 var label_style = document.createElement("style");
-label_style.innerHTML = "\
-.label\
-{\
-	background-color:rgb(44, 51, 61);\
-	width: 200px;\
-	border-radius: 0px 0px 3px 3px;\
-	padding: 3px;\
-	font-size: 20px;\
-	position: fixed;\
-	transition-duration: 0.5s;\
-	right: 30px;\
-	display: flex;\
-	flex-wrap: wrap;\
-	box-sizing: border-box;\
-	z-index: 30;\
-}\
-.arrows\
-{\
-	display: block;\
-	bottom: 0px;\
-	text-align: center;\
-	width: 100%;\
-	left: 0px;\
-	cursor: pointer;\
-}\
-.inputField\
-{\
-	transition-duration: 0.2s;\
-	width: 100%;\
-	color: black;\
-	font: 14px \"Arial\";\
-}\
-.inputField:focus\
-{\
-	box-shadow: 0px 0px 3px 0px rgba(124, 228, 146, 0.8);\
-}\
-.cryptBtn\
-{\
-	border-radius: 3px;\
-	padding: 2px;\
-	background-color: rgb(124, 228, 146);\
-	color: white;\
-	display: inline-block;\
-	height: 30px;\
-	border: none;\
-	cursor: pointer;\
-	padding: 3px;\
-	margin: 3px auto;\
-	width:48%;\
-	font: 700 20px \"Trebuchet MS\",sans-serif;\
-}\
-";
+label_style.innerHTML = `
+.label
+{
+	background-color:rgb(44, 51, 61);
+	width: 200px;
+	border-radius: 0px 0px 3px 3px;
+	padding: 3px;
+	font-size: 20px;
+	position: fixed;
+	transition-duration: 0.5s;
+	right: 30px;
+	display: flex;
+	flex-wrap: wrap;
+	box-sizing: border-box;
+	z-index: 30;
+}
+.arrows
+{
+	display: block;
+	bottom: 0px;
+	text-align: center;
+	width: 100%;
+	left: 0px;
+	cursor: pointer;
+}
+.inputField
+{
+	transition-duration: 0.2s;
+	width: 100%;
+	color: black;
+	font: 14px "Arial";
+}
+.inputField:focus
+{
+	box-shadow: 0px 0px 3px 0px rgba(124, 228, 146, 0.8);
+}
+.cryptBtn
+{
+	border-radius: 3px;
+	padding: 2px;
+	background-color: rgb(124, 228, 146);
+	color: white;
+	display: inline-block;
+	height: 30px;
+	border: none;
+	cursor: pointer;
+	padding: 3px;
+	margin: 3px auto;
+	width:48%;
+	font: 700 20px "Trebuchet MS",sans-serif;
+}
+`;
 var cryptoLib = document.createElement("script");
 cryptoLib.setAttribute("src", "https://bitwiseshiftleft.github.io/sjcl/sjcl.js");
 cryptoLib.setAttribute("type", "text/javascript");
