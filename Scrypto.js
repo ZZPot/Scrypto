@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        Scrypt0
 // @namespace   scrypt0
-// @include     https://0chan.hk/*
+// @include     *
 // @version     1
 // @grant       none
 // ==/UserScript==
