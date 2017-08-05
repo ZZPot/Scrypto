@@ -109,7 +109,6 @@ encryptWaveBtn.innerHTML = "EncryptWave";
 decryptWaveBtn.innerHTML = "DecryptWave";
 
 var siteName = document.location.href.split("/")[2];
-var cryptPropertyName = "encrypted";
 
 function extract0chan(post) // should extract message-containing node from the post block
 {
@@ -238,20 +237,6 @@ function cryptMessage(param)
 		console.log("Error: " + err);
 	}
 	return false;
-}
-function isPostEncrypted(post)
-{
-	if(post.hasOwnProperty(cryptPropertyName))
-	{
-		switch(post.getAttribute(cryptPropertyName))
-		{
-			case 1:
-				return 1;
-			case 0: 
-				return 0;
-		}
-	}
-	return -1;
 }
 function processPost(post, action, param)
 {
