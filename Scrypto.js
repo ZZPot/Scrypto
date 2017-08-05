@@ -7,7 +7,7 @@
 // ==/UserScript==
 var label_style = document.createElement("style");
 label_style.innerHTML = `
-.label
+.cryptLabel
 {
 	background-color:rgb(44, 51, 61);
 	width: 200px;
@@ -30,6 +30,8 @@ label_style.innerHTML = `
 	width: 100%;
 	left: 0px;
 	cursor: pointer;
+	color: white;
+	font-size: 14px;
 }
 .inputField
 {
@@ -37,6 +39,9 @@ label_style.innerHTML = `
 	width: 100%;
 	color: black;
 	font: 14px "Arial";
+	background-color: white;
+	border: 1px solid rgb(0, 0, 0);
+	border-radius: 2px;
 }
 .inputField:focus
 {
@@ -57,6 +62,13 @@ label_style.innerHTML = `
 	width:48%;
 	font: 700 20px "Trebuchet MS",sans-serif;
 }
+.waveBtn
+{
+	border-radius: 5px;
+	background: radial-gradient(rgb(30, 145, 53), rgb(255, 255, 255), rgb(30, 145, 53), rgb(255, 255, 255));
+	color: black;
+	font-size: 14px
+}
 `;
 var cryptoLib = document.createElement("script");
 cryptoLib.setAttribute("src", "https://bitwiseshiftleft.github.io/sjcl/sjcl.js");
@@ -71,9 +83,10 @@ var br = document.createElement("br");
 
 var encryptBtn = document.createElement("button");
 var decryptBtn = document.createElement("button");
+var encryptWaveBtn = document.createElement("button");
+var decryptWaveBtn = document.createElement("button");
 
-
-label.className = "label";
+label.className = "cryptLabel";
 keyField.className = "inputField";
 keyField.setAttribute("type", "text");
 keyField.setAttribute("placeholder", "Key");
@@ -81,12 +94,45 @@ textField.className = "inputField";
 textField.setAttribute("placeholder", "Text");
 arrows.className = "arrows";
 
-encryptBtn.onclick = encryptMessage;
-decryptBtn.onclick = decryptMessage;
+encryptBtn.onclick = function (){cryptMessage("encrypt");};
+decryptBtn.onclick = function (){cryptMessage("decrypt");};
 encryptBtn.className = "cryptBtn";
 decryptBtn.className = "cryptBtn";
 encryptBtn.innerHTML = "ENCRYPT";
 decryptBtn.innerHTML = "DECRYPT";
+
+encryptWaveBtn.onclick = function (){processBoard("crypt", "encrypt");};
+decryptWaveBtn.onclick = function (){processBoard("crypt", "decrypt");};
+encryptWaveBtn.className = "cryptBtn waveBtn";
+decryptWaveBtn.className = "cryptBtn waveBtn";
+encryptWaveBtn.innerHTML = "EncryptWave";
+decryptWaveBtn.innerHTML = "DecryptWave";
+
+var siteName = document.location.href.split("/")[2];
+var cryptPropertyName = "encrypted";
+
+function extract0chan(post) // should extract message-containing node from the post block
+{
+	var postBody = post.getElementsByClassName("post-body-message");
+	if(postBody.empty)
+		return false;
+	var postMsg = postBody[0].getElementsByTagName("div")
+	if(postMsg.empty)
+		return false;
+	return postMsg[0];
+}
+function collect0chan()
+{
+	var posts = document.getElementsByClassName("block post");
+	return posts;
+}
+var extractors = { // list of extraction functions
+	"0chan.hk": extract0chan
+};
+var collectors = { // list of collectors functions
+	"0chan.hk": collect0chan
+};
+
 
 function hideCrypt()
 {
@@ -143,7 +189,7 @@ function swapText(newText)
 		return true;
 	}
 }
-function crytp(text, action)
+function crytp(text, param)
 {
 	var password = keyField.value;
 	var params = 
@@ -155,13 +201,13 @@ function crytp(text, action)
         ks: 128,
 		cipher: "aes",
 		iv: "gKh+JQQmah38VpDZPkACyw==", //should be random
-		salt: btoa(document.location.href.split("/")[2]),
+		salt: btoa(siteName),
 		v: 1,
 	};
-	switch(action)
+	switch(param)
 	{
 		case "encrypt":
-			return sjcl.encrypt(password, text, params);
+			return JSON.parse(sjcl.encrypt(password, text, params)).ct;
 		break; // don't need
 		
 		case "decrypt":
@@ -170,7 +216,7 @@ function crytp(text, action)
 		break;
 	}
 }
-function encryptMessage()
+function cryptMessage(param)
 {
 	var selectedText = getSelectedText();
 	if(!selectedText)
@@ -178,45 +224,72 @@ function encryptMessage()
 	try
 	{
 		selectedText = selectedText.toString();
-		var encryptedText = crytp(selectedText, "encrypt");
-		console.log("Selected text: " + selectedText + "; Encrypted: " + encryptedText);
-		if(!swapText(JSON.parse(encryptedText).ct))
+		var output = crytp(selectedText, param);
+		console.log("Input: " + selectedText + "; Output: " + output);
+		if(!swapText(output))
 		{
-			alert("Can't swap text");
+			console.log("Can't swap text");
 			return false;
 		}
 		return true;
 	}
 	catch(err)
 	{
-		alert("Error: " + err);
+		console.log("Error: " + err);
 	}
 	return false;
 }
-function decryptMessage()
+function isPostEncrypted(post)
 {
-	var selectedText = getSelectedText();
-	if(!selectedText)
-		return false;
-	try
+	if(post.hasOwnProperty(cryptPropertyName))
 	{
-		selectedText = selectedText.toString();
-		var decryptedText = crytp(selectedText, "decrypt");
-		console.log("Encrypted text: " + selectedText + "; Decrypted: " + decryptedText);
-		if(!swapText(decryptedText))
+		switch(post.getAttribute(cryptPropertyName))
 		{
-			alert("Can't swap text");
-			return false;
+			case 1:
+				return 1;
+			case 0: 
+				return 0;
 		}
-		return true;
 	}
-	catch(err)
-	{
-		alert("Error: " + err);
-	}	
-	return false;
+	return -1;
 }
-
+function processPost(post, action, param)
+{
+	switch(action)
+	{
+		case "crypt":
+			var msgNode = extractors[siteName](post);
+			if(!msgNode)
+			{
+				console.log("Can't extract message body");
+				return false;
+			}
+			try
+			{
+				msgNode.innerHTML = crytp(msgNode.innerHTML, param);
+				return true;
+			}
+			catch(err)
+			{
+				//some style response?
+				console.log("Can't perform crypt operation: " + param);
+			}
+			break;
+	}
+}
+function processBoard(action, param)
+{
+	console.log(siteName + " processBoard(" + action + ", " + param + ")");
+	var posts = collectors[siteName]();
+	if(posts.empty)
+	{
+		console.log("Can't find any post");
+		return false;
+	}
+	console.log("Posts on page: " + posts.length);
+	for(var i = 0; i < posts.length; i++)
+		processPost(posts[i], action, param);
+}
 document.head.appendChild(label_style);
 document.head.insertBefore(cryptoLib, document.head.firstChild);
 
@@ -225,6 +298,8 @@ label.appendChild(keyField);
 label.appendChild(br);
 label.appendChild(encryptBtn);
 label.appendChild(decryptBtn);
+label.appendChild(encryptWaveBtn);
+label.appendChild(decryptWaveBtn);
 label.appendChild(textField);
 label.appendChild(arrows);
 showCrypt();
