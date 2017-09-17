@@ -5,6 +5,7 @@
 // @version     1
 // @grant       none
 // ==/UserScript==
+
 var label_style = document.createElement("style");
 label_style.innerHTML = `
 .cryptLabel
@@ -69,6 +70,12 @@ label_style.innerHTML = `
 	color: black;
 	font-size: 14px
 }
+.waveBtn:disabled
+{
+	background: rgb(100, 100, 100);
+	cursor: default;
+	display: none;
+}
 `;
 var cryptoLib = document.createElement("script");
 cryptoLib.setAttribute("src", "https://bitwiseshiftleft.github.io/sjcl/sjcl.js");
@@ -108,30 +115,36 @@ decryptWaveBtn.className = "cryptBtn waveBtn";
 encryptWaveBtn.innerHTML = "EncryptWave";
 decryptWaveBtn.innerHTML = "DecryptWave";
 
+var crawler0chan = 
+{
+	extract: function(post)
+	{
+		var postBody = post.getElementsByClassName("post-body-message");
+		if(postBody.empty)
+			return false;
+		var postMsg = postBody[0].getElementsByTagName("div")
+		if(postMsg.empty)
+			return false;
+		return postMsg[0];
+	},
+	collect: function()
+	{
+		var posts = document.getElementsByClassName("block post");
+		return posts;
+	}
+};
+
+var crawlers = {
+	"0chan.hk": crawler0chan
+};
+
 var siteName = document.location.href.split("/")[2];
 
-function extract0chan(post) // should extract message-containing node from the post block
+if(!crawlers.hasOwnProperty(siteName))
 {
-	var postBody = post.getElementsByClassName("post-body-message");
-	if(postBody.empty)
-		return false;
-	var postMsg = postBody[0].getElementsByTagName("div")
-	if(postMsg.empty)
-		return false;
-	return postMsg[0];
+	encryptWaveBtn.disabled = true;
+	decryptWaveBtn.disabled = true;
 }
-function collect0chan()
-{
-	var posts = document.getElementsByClassName("block post");
-	return posts;
-}
-var extractors = { // list of extraction functions
-	"0chan.hk": extract0chan
-};
-var collectors = { // list of collectors functions
-	"0chan.hk": collect0chan
-};
-
 
 function hideCrypt()
 {
@@ -243,7 +256,7 @@ function processPost(post, action, param)
 	switch(action)
 	{
 		case "crypt":
-			var msgNode = extractors[siteName](post);
+			var msgNode = crawlers[siteName].extract(post);
 			if(!msgNode)
 			{
 				console.log("Can't extract message body");
@@ -265,7 +278,7 @@ function processPost(post, action, param)
 function processBoard(action, param)
 {
 	console.log(siteName + " processBoard(" + action + ", " + param + ")");
-	var posts = collectors[siteName]();
+	var posts = crawlers[siteName].collect();
 	if(posts.empty)
 	{
 		console.log("Can't find any post");
