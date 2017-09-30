@@ -93,6 +93,8 @@ var decryptBtn = document.createElement("button");
 var encryptWaveBtn = document.createElement("button");
 var decryptWaveBtn = document.createElement("button");
 
+var autoBtn = document.createElement("input");
+
 label.className = "cryptLabel";
 keyField.className = "inputField";
 keyField.setAttribute("type", "text");
@@ -115,6 +117,10 @@ decryptWaveBtn.className = "cryptBtn waveBtn";
 encryptWaveBtn.innerHTML = "EncryptWave";
 decryptWaveBtn.innerHTML = "DecryptWave";
 
+autoBtn.className = "autoBtn";
+autoBtn.setAttribute("type", "checkbox");
+//should get stored data about auto decryption
+
 var crawler0chan = 
 {
 	extract: function(post)
@@ -131,11 +137,50 @@ var crawler0chan =
 	{
 		var posts = document.getElementsByClassName("block post");
 		return posts;
+	},
+	auto: false, // because of javashit
+	escapeCode: function(postText)
+	{
+		var res = postText.replace(/</mg, "&lt;");
+		res = res.replace(/^>(?!>)(.+?)[\n$]/mg, "<blockquote>>$1</blockquote>\n");
+		res = res.replace(/^>{2,}(\d+?)[\n$]/mg, "<a data-post=\"$1\" style=\"\">>>$1</a>\n");
+		res = res.replace(/\n/mg, "<br>");
+		return res;
+	}
+};
+var crawler2channelru = 
+{
+	extract: function(post)
+	{
+		var postBody = post.getElementsByClassName("replytext");
+		if(postBody.empty)
+			return false;
+		var postMsg = postBody[0].getElementsByTagName("p");//sometimes it doesn't have <p> element
+		if(postMsg.empty)
+		{
+			return false;
+		}
+		return postMsg[0];
+	},
+	collect: function()
+	{
+		var posts = document.getElementsByClassName("reply");
+		return posts;
+	},
+	auto: true,
+	escapeCode: function(postText)
+	{
+		var res = postText.replace(/</mg, "&lt;");
+		res = res.replace(/^>(?!>)(.+?)[\n$]/mg, "<blockquote>>$1</blockquote>");
+		res = res.replace(/\n/mg, "<br>");
+		return res;
 	}
 };
 
+//supported chans
 var crawlers = {
-	"0chan.hk": crawler0chan
+	"0chan.hk": crawler0chan,
+	"2channel.ru": crawler2channelru
 };
 
 var siteName = document.location.href.split("/")[2];
@@ -264,7 +309,7 @@ function processPost(post, action, param)
 			}
 			try
 			{
-				msgNode.innerHTML = crytp(msgNode.innerHTML, param);
+				msgNode.innerHTML = crawlers[siteName].escapeCode(crytp(msgNode.innerHTML, param));
 				return true;
 			}
 			catch(err)
