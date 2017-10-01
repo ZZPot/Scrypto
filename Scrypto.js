@@ -76,6 +76,10 @@ label_style.innerHTML = `
 	cursor: default;
 	display: none;
 }
+.checkBoxLabel
+{
+	color: white;
+}
 `;
 var cryptoLib = document.createElement("script");
 cryptoLib.setAttribute("src", "https://bitwiseshiftleft.github.io/sjcl/sjcl.js");
@@ -94,11 +98,13 @@ var encryptWaveBtn = document.createElement("button");
 var decryptWaveBtn = document.createElement("button");
 
 var autoBtn = document.createElement("input");
+var autoLabel = document.createElement("label");
 
 label.className = "cryptLabel";
 keyField.className = "inputField";
 keyField.setAttribute("type", "text");
 keyField.setAttribute("placeholder", "Key");
+keyField.onchange = function(){localStorage["pwd"] = this.value;};
 textField.className = "inputField";
 textField.setAttribute("placeholder", "Text");
 arrows.className = "arrows";
@@ -119,8 +125,14 @@ decryptWaveBtn.innerHTML = "DecryptWave";
 
 autoBtn.className = "autoBtn";
 autoBtn.setAttribute("type", "checkbox");
-//should get stored data about auto decryption
-
+autoBtn.onclick = function(){
+	if(autoBtn.checked)
+		localStorage["autoDecrypt"] = 1;
+	else
+		localStorage["autoDecrypt"] = 0;
+}
+autoLabel.className = "checkBoxLabel";
+autoLabel.innerHTML = "Auto decrypt";
 var crawler0chan = 
 {
 	extract: function(post)
@@ -146,6 +158,10 @@ var crawler0chan =
 		res = res.replace(/^>{2,}(\d+?)[\n$]/mg, "<a data-post=\"$1\" style=\"\">>>$1</a>\n");
 		res = res.replace(/\n/mg, "<br>");
 		return res;
+	},
+	markPost: function(post)
+	{
+		post.style.backgroundColor = "#99FF99";
 	}
 };
 var crawler2channelru = 
@@ -174,6 +190,10 @@ var crawler2channelru =
 		res = res.replace(/^>(?!>)(.+?)[\n$]/mg, "<blockquote>>$1</blockquote>");
 		res = res.replace(/\n/mg, "<br>");
 		return res;
+	},
+	markPost: function(post)
+	{
+		post.style.backgroundColor = "#99FF99";
 	}
 };
 
@@ -183,8 +203,18 @@ var crawlers = {
 	"2channel.ru": crawler2channelru
 };
 
-var siteName = document.location.href.split("/")[2];
-
+var siteName = document.domain;
+//loading params, if absent - set it default
+var defaultParams = {
+	"show": 1,
+	"autoDecrypt": 0,
+	"pwd": ""
+};
+for(var paramName in defaultParams)
+{
+	if (!localStorage.hasOwnProperty(paramName))
+		localStorage[paramName] = defaultParams[paramName];
+}
 if(!crawlers.hasOwnProperty(siteName))
 {
 	encryptWaveBtn.disabled = true;
@@ -196,12 +226,14 @@ function hideCrypt()
 	label.style.top = "-" + arrows.getBoundingClientRect().top + "px";
 	arrows.onclick = showCrypt;
 	arrows.innerHTML = "▼";
+	localStorage["show"] = 0;
 }
 function showCrypt()
 {
 	label.style.top = "0px";
 	arrows.onclick = hideCrypt;
 	arrows.innerHTML = "▲";
+	localStorage["show"] = 1;
 }
 function getSelectedText()
 {
@@ -310,6 +342,7 @@ function processPost(post, action, param)
 			try
 			{
 				msgNode.innerHTML = crawlers[siteName].escapeCode(crytp(msgNode.innerHTML, param));
+				crawlers[siteName].markPost(post);
 				return true;
 			}
 			catch(err)
@@ -338,11 +371,34 @@ document.head.insertBefore(cryptoLib, document.head.firstChild);
 
 document.body.appendChild(label);
 label.appendChild(keyField);
+keyField.value = localStorage["pwd"];
 label.appendChild(br);
 label.appendChild(encryptBtn);
 label.appendChild(decryptBtn);
+if(crawlers.hasOwnProperty(siteName) && crawlers[siteName].auto)
+{
+	autoLabel.insertBefore(autoBtn, autoLabel.firstChild);
+	label.appendChild(autoLabel);
+}
 label.appendChild(encryptWaveBtn);
 label.appendChild(decryptWaveBtn);
 label.appendChild(textField);
 label.appendChild(arrows);
-showCrypt();
+
+window.onload = function(){
+if(localStorage["autoDecrypt"] == 1)
+{
+	autoBtn.checked = "true";
+	processBoard("crypt", "decrypt");
+}
+if(localStorage["show"] == 1)
+{
+	showCrypt();
+}
+else
+{
+	showCrypt();
+	//костыль
+	hideCrypt();
+}
+}
