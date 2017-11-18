@@ -140,10 +140,16 @@ var crawler0chan =
 		var postBody = post.getElementsByClassName("post-body-message");
 		if(postBody.empty)
 			return false;
-		var postMsg = postBody[0].getElementsByTagName("div")
+		var postMsg = postBody[0].getElementsByTagName("div");
+		var msgNode = 0; // in there is no post-link, that occupy first div-node
+		if(postBody[0].childElementCount >= 2)
+		{
+			msgNode = 1; // or last, I didn't encounter more than two
+		}
+		console.log("Count: " + postBody[0].childElementCount);
 		if(postMsg.empty)
 			return false;
-		return postMsg[0];
+		return postMsg[msgNode];
 	},
 	collect: function()
 	{
@@ -186,6 +192,7 @@ var crawler2channelru =
 	auto: true,
 	escapeCode: function(postText)
 	{
+		// no post-links, because undefined target 
 		var res = postText.replace(/</mg, "&lt;");
 		res = res.replace(/^>(?!>)(.+?)[\n$]/mg, "<blockquote>>$1</blockquote>");
 		res = res.replace(/\n/mg, "<br>");
