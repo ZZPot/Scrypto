@@ -146,7 +146,6 @@ var crawler0chan =
 		{
 			msgNode = 1; // or last, I didn't encounter more than two
 		}
-		console.log("Count: " + postBody[0].childElementCount);
 		if(postMsg.empty)
 			return false;
 		return postMsg[msgNode];
@@ -160,8 +159,8 @@ var crawler0chan =
 	escapeCode: function(postText)
 	{
 		var res = postText.replace(/</mg, "&lt;");
-		res = res.replace(/^>(?!>)(.+?)[\n$]/mg, "<blockquote>>$1</blockquote>\n");
-		res = res.replace(/^>{2,}(\d+?)[\n$]/mg, "<a data-post=\"$1\" style=\"\">>>$1</a>\n");
+		res = res.replace(/^>(?!>)(.+?)(\n|$)/mg, "<blockquote>>$1</blockquote>\n");
+		res = res.replace(/^>{2,}(\d+?)(\n|$)/mg, "<a data-post=\"$1\" style=\"\">>>$1</a>\n");
 		res = res.replace(/\n/mg, "<br>");
 		return res;
 	},
@@ -194,7 +193,41 @@ var crawler2channelru =
 	{
 		// no post-links, because undefined target 
 		var res = postText.replace(/</mg, "&lt;");
-		res = res.replace(/^>(?!>)(.+?)[\n$]/mg, "<blockquote>>$1</blockquote>");
+		res = res.replace(/^>(?!>)(.+?)(\n|$)/mg, "<blockquote>>$1</blockquote>");
+		res = res.replace(/\n/mg, "<br>");
+		return res;
+	},
+	markPost: function(post) // 
+	{
+		post.style.backgroundColor = "#99FF99";
+	}
+};
+var crawlerkozlyach = //etot min00s ne podkhodeet
+{
+	extract: function(post)
+	{
+		var postBody = post.getElementsByTagName("blockquote");
+		if(postBody.empty)
+			return false;
+		var postMsg = postBody[0];
+		if(postMsg.empty)
+		{
+			return false;
+		}
+		return postMsg;
+	},
+	collect: function()
+	{
+		var posts = document.getElementsByClassName("post-container"); //not full post because post block has only common class "glass"
+		return posts;
+	},
+	auto: true,
+	escapeCode: function(postText)
+	{
+		var res = postText.replace(/</mg, "&lt;");
+		res = res.replace(/^>(?!>)(.+?)[\n$\s]/mg, "<em>&gt;$1</em>");
+		res = res.replace(/^>{2,}(\d+?)[\n$\s]/mg,
+		"<em><a class=\"post-link temp\" data-id=\"$1\" href=\"#p$1\">&gt;&gt;$1</a><a class=\"hash-link\" href=\"#p$1\"> #</a></em>"); 
 		res = res.replace(/\n/mg, "<br>");
 		return res;
 	},
@@ -202,12 +235,13 @@ var crawler2channelru =
 	{
 		post.style.backgroundColor = "#99FF99";
 	}
-};
-
+}
 //supported chans
 var crawlers = {
-	"0chan.hk": crawler0chan,
-	"2channel.ru": crawler2channelru
+	"0chan.hk": 		crawler0chan,
+	"2channel.ru": 		crawler2channelru,
+	"0-chan.ru": 		crawlerkozlyach,
+	"www.0-chan.ru": 	crawlerkozlyach
 };
 
 var siteName = document.domain;
@@ -393,19 +427,19 @@ label.appendChild(textField);
 label.appendChild(arrows);
 
 window.onload = function(){
-if(localStorage["autoDecrypt"] == 1)
-{
-	autoBtn.checked = "true";
-	processBoard("crypt", "decrypt");
-}
-if(localStorage["show"] == 1)
-{
-	showCrypt();
-}
-else
-{
-	showCrypt();
-	//костыль
-	hideCrypt();
-}
+	if(localStorage["autoDecrypt"] == 1)
+	{
+		autoBtn.checked = "true";
+		processBoard("crypt", "decrypt");
+	}
+	if(localStorage["show"] == 1)
+	{
+		showCrypt();
+	}
+	else
+	{
+		showCrypt();
+		//костыль
+		hideCrypt();
+	}
 }
