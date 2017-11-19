@@ -21,7 +21,7 @@ label_style.innerHTML = `
 	display: flex;
 	flex-wrap: wrap;
 	box-sizing: border-box;
-	z-index: 30;
+	z-index: 9999;
 }
 .arrows
 {
