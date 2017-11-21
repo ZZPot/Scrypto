@@ -236,12 +236,53 @@ var crawlerkozlyach = //etot min00s ne podkhodeet
 		post.style.backgroundColor = "#99FF99";
 	}
 }
+var crawlerinach = 
+{
+	extract: function(post)
+	{
+		var postBody = post.getElementsByTagName("blockquote");
+		if(postBody.empty)
+			return false;
+		var postMsg = postBody[0];
+		if(postMsg.empty)
+		{
+			return false;
+		}
+		postMsg = postMsg.getElementsByTagName("p"); // я не знаю как x-path в js запустить
+		if(postMsg.empty)
+		{
+			return false;
+		}
+		return postMsg[0];
+	},
+	collect: function()
+	{
+		var posts = Array.from(document.getElementsByClassName("reply")); // только ответы
+		var opposts = Array.from(document.getElementsByClassName("op-post")); // ОПпосты
+		return posts.concat(opposts);
+	},
+	auto: true,
+	escapeCode: function(postText)
+	{
+		var res = postText.replace(/</mg, "&lt;");
+		res = res.replace(/^>(?!>)(.+?)(?=[\n$\s])/mg, "<span class=\"unkfunc\">&gt;$1</span>");
+		res = res.replace(/^>{2,}(\d+?)(?=[\n$\s])/mg,
+		"<a class=\"areply\" href=\"#$1\" onclick=\"highlight($1)\">&gt;&gt;$1</a>"); // чисто для вида
+		res = res.replace(/\n/mg, "<br>");
+		return res;
+	},
+	markPost: function(post)
+	{
+		post.style.backgroundColor = "#99FF99";
+	}
+}
 //supported chans
 var crawlers = {
-	"0chan.hk": 		crawler0chan,
+	"0chan.hk":			crawler0chan,
 	"2channel.ru": 		crawler2channelru,
 	"0-chan.ru": 		crawlerkozlyach,
-	"www.0-chan.ru": 	crawlerkozlyach
+	"www.0-chan.ru": 	crawlerkozlyach,
+	"inach.org":		crawlerinach
 };
 
 var siteName = document.domain;
@@ -403,7 +444,6 @@ function processBoard(action, param)
 		console.log("Can't find any post");
 		return false;
 	}
-	console.log("Posts on page: " + posts.length);
 	for(var i = 0; i < posts.length; i++)
 		processPost(posts[i], action, param);
 }
