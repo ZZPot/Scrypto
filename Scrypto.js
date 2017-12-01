@@ -159,8 +159,8 @@ var crawler0chan =
 	escapeCode: function(postText)
 	{
 		var res = postText.replace(/</mg, "&lt;");
-		res = res.replace(/^>(?!>)(.+?)(\n|$)/mg, "<blockquote>>$1</blockquote>\n");
-		res = res.replace(/^>{2,}(\d+?)(\n|$)/mg, "<a data-post=\"$1\" style=\"\">>>$1</a>\n");
+		res = res.replace(/^>(?!>)(.+?)(?=$|\b|\n|\s|\0)/mg, "<blockquote>>$1</blockquote>\n");
+		res = res.replace(/^>{2}(\d+?)(?=$|\b|\n|\s|\0)/mg, "<a data-post=\"$1\" style=\"\">>>$1</a>\n");
 		res = res.replace(/\n/mg, "<br>");
 		return res;
 	},
@@ -193,7 +193,7 @@ var crawler2channelru =
 	{
 		// no post-links, because undefined target 
 		var res = postText.replace(/</mg, "&lt;");
-		res = res.replace(/^>(?!>)(.+?)(\n|$)/mg, "<blockquote>>$1</blockquote>");
+		res = res.replace(/^>(?!>)(.+?)(?=$|\b|\n|\s|\0)/mg, "<blockquote>>$1</blockquote>");
 		res = res.replace(/\n/mg, "<br>");
 		return res;
 	},
@@ -225,8 +225,8 @@ var crawlerkozlyach = //etot min00s ne podkhodeet
 	escapeCode: function(postText)
 	{
 		var res = postText.replace(/</mg, "&lt;");
-		res = res.replace(/^>(?!>)(.+?)[\n$\s]/mg, "<em>&gt;$1</em>");
-		res = res.replace(/^>{2,}(\d+?)[\n$\s]/mg,
+		res = res.replace(/^>(?!>)(.+?)(?=$|\b|\n|\s|\0)/mg, "<em>&gt;$1</em>");
+		res = res.replace(/^>{2}(\d+?)(?=$|\b|\n|\s|\0)/mg,
 		"<em><a class=\"post-link temp\" data-id=\"$1\" href=\"#p$1\">&gt;&gt;$1</a><a class=\"hash-link\" href=\"#p$1\"> #</a></em>"); 
 		res = res.replace(/\n/mg, "<br>");
 		return res;
@@ -265,9 +265,44 @@ var crawlerinach =
 	escapeCode: function(postText)
 	{
 		var res = postText.replace(/</mg, "&lt;");
-		res = res.replace(/^>(?!>)(.+?)(?=[\n$\s])/mg, "<span class=\"unkfunc\">&gt;$1</span>");
-		res = res.replace(/^>{2,}(\d+?)(?=[\n$\s])/mg,
+		res = res.replace(/^>(?!>)(.+?)(?=$|\b|\n|\s|\0)/mg, "<span class=\"unkfunc\">&gt;$1</span>");
+		res = res.replace(/^>{2}(\d+?)(?=$|\b|\n|\s|\0)/mg,
 		"<a class=\"areply\" href=\"#$1\" onclick=\"highlight($1)\">&gt;&gt;$1</a>"); // чисто для вида
+		res = res.replace(/\n/mg, "<br>");
+		return res;
+	},
+	markPost: function(post)
+	{
+		post.style.backgroundColor = "#99FF99";
+	}
+}
+var crawlerchaos = 
+{
+	extract: function(post)
+	{
+		var postBody = post.getElementsByTagName("p");
+		if(postBody.empty)
+			return false;
+		var postMsg = postBody[0];
+		if(postMsg.empty)
+		{
+			return false;
+		}
+		return postMsg;
+	},
+	collect: function()
+	{
+		var posts = Array.from(document.getElementsByTagName("blockquote"));
+		return posts;
+	},
+	auto: true,
+	escapeCode: function(postText)
+	{
+		var res = postText.replace(/</mg, "&lt;");
+		res = res.replace(/^>(?!>)(.+?)(?=$|\b|\n|\s|\0)/mg, "<blockquote class=\"unkfunc\">&gt;$1</blockquote>");
+		res = res.replace(/^>{2}(\d+?)(?=$|\b|\n|\s|\0)/mg,
+		"<a href=\"#$1\" onclick=\"highlight($1)\">&gt;&gt;$1</a>"); // для вида
+		// потом надо добавить идентификацию постов по тредам, тогда можно будет указать корректный href
 		res = res.replace(/\n/mg, "<br>");
 		return res;
 	},
@@ -282,7 +317,8 @@ var crawlers = {
 	"2channel.ru": 		crawler2channelru,
 	"0-chan.ru": 		crawlerkozlyach,
 	"www.0-chan.ru": 	crawlerkozlyach,
-	"inach.org":		crawlerinach
+	"inach.org":		crawlerinach,
+	"chaos.fm":			crawlerchaos
 };
 
 var siteName = document.domain;
